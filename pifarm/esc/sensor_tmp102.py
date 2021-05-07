@@ -5,9 +5,9 @@ _REG_CONFIG = 0x01
 _REG_TLOW = 0x02
 _REG_THIGH = 0x03
 
-class EscSensorTMP102:
+class SensorTMP102:
     def __init__(self, esc_bus):
-        self._device = EscDevice(esc_bus, _DEFAULT_ADDRESS)
+        self._device = Device(esc_bus, _DEFAULT_ADDRESS)
 
     def readTemperature(self):
         data = self._device.block_read(_REG_TEMPERATURE, 2)

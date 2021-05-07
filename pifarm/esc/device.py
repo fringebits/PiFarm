@@ -1,7 +1,5 @@
 
-
-
-class EscDevice:
+class Device:
     def __init__(self, bus, address):
         self._bus = bus
         self._address = address

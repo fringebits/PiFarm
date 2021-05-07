@@ -1,10 +1,11 @@
 
 import time
-import esc_sensor_tmp102
+import esc.bus
+import esc.sensor_tmp102
 
 def main():
-    bus = EscBus(1)
-    sen = EscSensorTMP102(bus)
+    bus = esc.Bus(1)
+    sen = esc.SensorTMP102(bus)
 
     #while True:
     val = sen.readTemp()
