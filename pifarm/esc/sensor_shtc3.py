@@ -2,48 +2,14 @@
 # SPDX-FileCopyrightText: Copyright (c) 2020 Bryan Siepert for Adafruit Industries
 #
 # SPDX-License-Identifier: MIT
-"""
-`adafruit_shtc3`
-================================================================================
+#
+# This code originates from "https://github.com/adafruit/Adafruit_CircuitPython_SHTC3.git"
 
-A helper library for using the Sensirion SHTC3 Humidity and Temperature Sensor
-
-
-* Author(s): Bryan Siepert
-
-Implementation Notes
---------------------
-
-**Hardware:**
-
-* Adafruit's SHTC3 Temperature & Humidity Sensor: https://www.adafruit.com/product/4636
-
-**Software and Dependencies:**
-
-* Adafruit CircuitPython firmware for the supported boards:
-  https://circuitpython.org/downloads
-
-
-
-* Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
-* Adafruit's Register library: https://github.com/adafruit/Adafruit_CircuitPython_Register
-"""
-
-# imports
-
-#__version__ = "0.0.0-auto.0"
-#__repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SHTC3.git"
-
-#from struct import unpack_from
+from .device import Device
 import time
-#import adafruit_bus_device.i2c_device as i2c_device
-
-
-# include "Arduino.h"
-# include <Adafruit_I2CDevice.h>
-# include <Adafruit_Sensor.h>
 
 _SHTC3_DEFAULT_ADDR = 0x70  # SHTC3 I2C Address
+
 _SHTC3_NORMAL_MEAS_TFIRST_STRETCH = (
     0x7CA2  # Normal measurement, temp first with Clock Stretch Enabled
 )
@@ -76,7 +42,6 @@ _SHTC3_SLEEP = 0xB098  # Enter sleep mode
 _SHTC3_WAKEUP = 0x3517  # Wakeup mode
 _SHTC3_CHIP_ID = 0x807
 
-
 class SensorSHTC3:
     """
     A driver for the SHTC3 temperature and humidity sensor.
@@ -107,11 +72,12 @@ class SensorSHTC3:
         .. code-block:: python
 
             temperature, relative_humidity = sht.measurements
-
     """
 
-    def __init__(self, i2c_bus):
-        self.i2c_device = i2c_device.I2CDevice(i2c_bus, _SHTC3_DEFAULT_ADDR)
+    _WRITE_COMMAND_DELAY = 0.1
+
+    def __init__(self, esc_bus):
+        self._device = Device(esc_bus, _SHTC3_DEFAULT_ADDR)
 
         self._buffer = bytearray(6)
         self.low_power = False
@@ -121,22 +87,25 @@ class SensorSHTC3:
         if self._chip_id != _SHTC3_CHIP_ID:
             raise RuntimeError("Failed to find an SHTC3 sensor - check your wiring!")
 
-    def _write_command(self, command):
+    def _write_command(self, command, delay = _WRITE_COMMAND_DELAY):
         """helper function to write a command to the i2c device"""
-        self._buffer[0] = command >> 8
-        self._buffer[1] = command & 0xFF
+        self._buffer[0] = command >> 8      # HIGH byte
+        self._buffer[1] = command & 0xFF    # LOW byte
 
-        with self.i2c_device as i2c:
-            i2c.write(self._buffer, start=0, end=2)
+        self._device._bus.write_byte_data(self._device._address, self._buffer[0], self._buffer[1])
+
+        if (delay > 0):
+            time.sleep(delay)
 
     def _get_chip_id(self):  #   readCommand(SHTC3_READID, data, 3);
         """Determines the chip id of the sensor"""
         self._write_command(_SHTC3_READID)
-        time.sleep(0.001)
-        with self.i2c_device as i2c:
-            i2c.readinto(self._buffer)
 
-        return unpack_from(">H", self._buffer)[0] & 0x083F
+        # read 6 bytes
+        read_address = self._device._address
+        data = self._device._bus.read_block_data(read_address, 0)
+
+        return unpack_from(">H", data)[0] & 0x083F
 
     def reset(self):
         """Perform a soft reset of the sensor, resetting all settings to their power-on defaults"""
@@ -147,7 +116,6 @@ class SensorSHTC3:
         except RuntimeError as run_err:
             if run_err.args and run_err.args[0] != "I2C device address was NACK'd":
                 raise run_err
-        time.sleep(0.001)
 
     @property
     def sleeping(self):
