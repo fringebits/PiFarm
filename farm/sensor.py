@@ -21,7 +21,23 @@ class Sensor():
 
     def fetch(self):
         if self.thing is not None:
-            return self.thing.read()
+            field_map = self.thing.field_map
+            if field_map is None:
+                field_map = [*range(1,9)]
+
+            result = []
+            record = self.thing.read()
+            logger.info(f'{type(record)}')
+            logger.info(f'{record}')
+            feeds = record['feeds']
+            feed = feeds[0]
+            for ii in field_map:
+                f = f'field{ii}'
+                if f in feed:
+                    result.append(int(feed[f]))
+                else:
+                    result.append(None)
+            return result
         return None
 
 class RandomSensor(Sensor):

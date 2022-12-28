@@ -8,6 +8,8 @@ logger = logging.getLogger()
 
 import farm
 
+# https://thingspeak.com/channels/68316/private_show
+
 def main():
     logger.info("PiFarm v1.0")
     logger.info(f'python-version = {platform.python_version()}')

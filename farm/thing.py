@@ -8,7 +8,7 @@ logger = logging.getLogger()
 things = farm.Config('things.json')
 
 class Thing:
-    TestDelay = 5
+    TestDelay = 10
 
     def Create(name, field_map=None):
         config = things.get(f'thing-{name}')
@@ -60,16 +60,18 @@ class Thing:
         ch = self._channel('read')
 
         if ch is None:
-            return False
+            return None
 
         data = {'results':1}
         
         ret = ch.get(data)
         logger.info(f'Thing.get {self.name}, data={ret}')
+        logger.info(f'{type(ret)}')
 
         if "pytest" in sys.modules:       
             time.sleep(Thing.TestDelay)
-        return True
+
+        return ret
 
     def _channel(self, mode):
         if mode == 'write':
