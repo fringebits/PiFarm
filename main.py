@@ -14,12 +14,9 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", help="Debug mode, forces use of windows", action="store_true")
-    parser.add_argument("--config", help="Config file to use.", default="config.json")
     args = parser.parse_args()
 
     farm.init_logs(args.debug)
-
-    farm.Config.Init(args.config)
 
     try:
         logger.debug(f'Setting up sensor array...')

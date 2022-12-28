@@ -1,4 +1,4 @@
-import thingspeak
+import time
 import farm
 
 def test_sensor():
@@ -17,12 +17,13 @@ def test_sensor_array():
     array.publish()
 
 def test_sensor_publish():
-    s = farm.RandomSensor('test')
+    s = farm.RandomSensor('test', 4)
     ret = s.read()
-    assert len(ret) == 3
-    assert s.publish(ret)
+    assert len(ret) == 4
+    assert s.publish()
 
-    s = farm.RandomSensor('test', [1, 2, 4])
-    ret = s.read()
+    s = farm.RandomSensor('test', 3, [1, 2, 4])
+    ret = s.read()    
     assert len(ret) == 3
-    assert s.publish(ret)
+    assert s.publish()
+    s.fetch()

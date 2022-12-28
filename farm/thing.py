@@ -1,42 +1,38 @@
+import farm
+import time
 import thingspeak
+import sys
 import logging
 logger = logging.getLogger()
 
-import farm
-import random
+things = farm.Config('things.json')
 
 class Thing:
+    TestDelay = 5
+
+    def Create(name, field_map=None):
+        config = things.get(f'thing-{name}')
+        if config is None:
+            return None
+        result = Thing(name, field_map)
+        result.config = config
+        return result
+
     def __init__(self, name, field_map=None):
+        logger.debug(f'Creating thing {name}...')
         self.name = name
-        self.channel = None
         self.field_map = field_map
         self.last_sample = None
-        self.write_key = farm.Config.Instance.getChannelKey(self.name, 'write')
-        self.read_key = farm.Config.Instance.getChannelKey(self.name, 'read')
+        self.config = things.get(f'thing-{self.name}')
 
-    def read(self):
-        self.last_sample = 0
-        return self.last_sample
-
-    def get_last(self):
-        ch = self._channel()
+    def publish(self, sample):
+        ch = self._channel('write')
         if ch is None:
             return False
-
-        options = {'api-key':self.read_key, 'results':1}
-        ch.get(options)
-
-    def publish(self, sample = None):
-        ch = self._channel()
-        if ch is None:
-            return False
-
-        if sample is None:
-            sample = self.last_sample
 
         assert sample is not None
 
-        data = {'api-key':self.write_key}
+        data = {}
 
         fields = self.field_map
         if fields is None:
@@ -51,27 +47,33 @@ class Thing:
             assert index <= 8, f'Field index out of range [1..8]: {index}'
             data[f'field{index}'] = value
             ii += 1
+        logger.info(f'Thing.publish {self.name}, data={data}')
 
         ch.update(data)
+
+        if "pytest" in sys.modules:       
+            time.sleep(Thing.TestDelay)
+
         return True
 
-    def _channel(self):
-        if self.write_key == None:
-            return None
-        if self.channel == None:
-            self.channel = thingspeak.Channel(self.name, self.write_key)
-        return self.channel
-
-class RandomSensor(Sensor):
-    def __init__(self, name, field_map=None, num_fields=3, sample_range=100):
-        super().__init__(name, field_map)
-        self.num_fields = num_fields
-        self.sample_range = sample_range
-
     def read(self):
-        ret = []
-        for ii in range(self.num_fields):
-            val = random.randrange(self.sample_range)
-            ret.append(val)
-        self.last_sample = ret
-        return ret
+        ch = self._channel('read')
+
+        if ch is None:
+            return False
+
+        data = {'results':1}
+        
+        ret = ch.get(data)
+        logger.info(f'Thing.get {self.name}, data={ret}')
+
+        if "pytest" in sys.modules:       
+            time.sleep(Thing.TestDelay)
+        return True
+
+    def _channel(self, mode):
+        if mode == 'write':
+            return thingspeak.Channel(self.config['channel_id'], self.config['write_key'])
+        if mode == 'read':
+            return thingspeak.Channel(self.config['channel_id'], self.config['read_key'])
+        assert False, f'Invalid mode={mode}'
