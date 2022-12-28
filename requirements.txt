@@ -1,2 +1,2 @@
-azure-iot-device
-twilio
+thingspeak
+pytest
