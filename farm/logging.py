@@ -1,4 +1,4 @@
-
+import sys
 import os
 from logging.handlers import RotatingFileHandler
 import logging
@@ -16,6 +16,10 @@ def init_logs(debug):
         logLevel = logging.DEBUG
     else:
         logLevel = logging.INFO
+
+    if "pytest" in sys.modules:       
+        logLevel = logging.DEBUG
+
     console.setLevel(logLevel)
-    #logger.addHandler(console)
+    logger.addHandler(console)
     logger.info('Setup logger...')

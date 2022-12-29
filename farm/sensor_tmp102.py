@@ -1,5 +1,7 @@
 import smbus
 import farm
+import logging
+logger = logging.getLogger()
 
 #
 # Reference reading tmp102 device; https://github.com/n8many/TMP102py/blob/master/tmp102.py
@@ -27,7 +29,7 @@ tempConvertInv = {
 }
 
 class Sensor_tmp102(farm.Sensor):
-    def __init__(self, name, field_map=None, i2c_bus=0, i2c_address=_DEFAULT_ADDRESS):
+    def __init__(self, name, field_map=None, i2c_bus=1, i2c_address=_DEFAULT_ADDRESS):
         super().__init__(name, field_map)
         self.bus = smbus.SMBus(i2c_bus)
         self.i2c_address = i2c_address
@@ -37,6 +39,7 @@ class Sensor_tmp102(farm.Sensor):
         data = self.read_i2c(_REG_TEMPERATURE, 2)
         tempC = self.bytesToTemp(data)
         result = tempConvert[self._units](tempC)
+        logger.info(f'read: result=[{result}]')
         return [result]
 
     def readConfig(self, num, location=0, length=0):
@@ -54,7 +57,7 @@ class Sensor_tmp102(farm.Sensor):
         #ext = data[1] & 0x01
         res = int((data[0] << (4+ext)) + (data[1] >> (4-ext)))
 
-        if (data[0] | 0x7F is 0xFF):
+        if ((data[0] | 0x7F) == 0xFF):
             # Perform 2's complement operation (x = x-2^bits)
             res = res - 4096*(2**ext)
         # Outputs temperature in degC
@@ -71,4 +74,6 @@ class Sensor_tmp102(farm.Sensor):
     #     return self._bus.write_i2c_block_data(self._address, start, list(buffer[:end]))
 
     def read_i2c(self, location, count):
-        return self.bus.read_i2c_block_data(self.i2c_address, location, count)
+        data = self.bus.read_i2c_block_data(self.i2c_address, location, count)
+        logger.info(f'read_ic2: loc={location}, count={count}, data={data}')
+        return data

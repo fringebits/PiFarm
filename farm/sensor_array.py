@@ -1,4 +1,7 @@
-from .sensor import Sensor
+import farm
+import logging
+logger = logging.getLogger()
+
 
 # represents an array of sensors to sample
 class SensorArray:
@@ -6,7 +9,7 @@ class SensorArray:
         self.array = []
         self.samples = []
 
-    def append(self, sensor:Sensor):
+    def append(self, sensor:farm.Sensor):
         self.array.append(sensor)
 
     def read(self):
