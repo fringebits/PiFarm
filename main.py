@@ -1,4 +1,4 @@
-
+#!/bin/python3
 import argparse
 import os
 import platform
@@ -22,14 +22,7 @@ def main():
 
     try:
         logger.debug(f'Setting up sensor array...')
-        sensors = farm.Sensors()
-        sensors.append(farm.RandomSensor())
-        sensors.append(farm.RandomSensor())
-
-        logger.debug(f'Starting farm monitor...')
-        while True:
-            ret = sensors.read()
-
+        farm.run()
 
     finally:
         pass

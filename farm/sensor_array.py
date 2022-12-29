@@ -2,7 +2,6 @@ import farm
 import logging
 logger = logging.getLogger()
 
-
 # represents an array of sensors to sample
 class SensorArray:
     def __init__(self):

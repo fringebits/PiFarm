@@ -59,20 +59,15 @@ class Thing:
 
     def read(self):
         ch = self._channel('read')
-
         if ch is None:
             return None
-
         data = {'results':1}
-        
         ret = ch.get(data)
         logger.info(f'Thing.get {self.name}, data={ret}')
         result = json.loads(ret)
         logger.info(f'{type(result)}')
-
         if "pytest" in sys.modules:       
             time.sleep(Thing.TestDelay)
-
         return result
 
     def _channel(self, mode):

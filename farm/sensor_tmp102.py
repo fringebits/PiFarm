@@ -40,7 +40,8 @@ class Sensor_tmp102(farm.Sensor):
         tempC = self.bytesToTemp(data)
         result = tempConvert[self._units](tempC)
         logger.info(f'read: result=[{result}]')
-        return [result]
+        self.last_sample = [result]
+        return self.last_sample
 
     def readConfig(self, num, location=0, length=0):
         data = self.read_i2c(_REG_CONFIG, 2)
