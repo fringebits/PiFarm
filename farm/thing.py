@@ -2,6 +2,7 @@ import farm
 import time
 import thingspeak
 import sys
+import json
 import logging
 logger = logging.getLogger()
 
@@ -66,12 +67,13 @@ class Thing:
         
         ret = ch.get(data)
         logger.info(f'Thing.get {self.name}, data={ret}')
-        logger.info(f'{type(ret)}')
+        result = json.loads(ret)
+        logger.info(f'{type(result)}')
 
         if "pytest" in sys.modules:       
             time.sleep(Thing.TestDelay)
 
-        return ret
+        return result
 
     def _channel(self, mode):
         if mode == 'write':

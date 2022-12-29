@@ -19,7 +19,7 @@ def test_dummy_sensor():
     s = farm.RandomSensor('foo', 3)
     ret = s.read()
     assert len(ret) == 3
-    assert s.publish()
+    assert s.publish() == False
 
 def test_sensor_publish():
     # s = farm.RandomSensor('test', 4)
@@ -30,6 +30,6 @@ def test_sensor_publish():
     s = farm.RandomSensor('test', 3, [1, 2, 4])
     ret = s.read()
     assert len(ret) == 3
-    #assert s.publish()
+    assert s.publish()
     data = s.fetch()
     assert ret == data
